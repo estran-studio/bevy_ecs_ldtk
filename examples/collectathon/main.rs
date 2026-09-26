@@ -4,8 +4,6 @@ use bevy_ecs_ldtk::ldtk::LdtkJson;
 use bevy_ecs_ldtk::prelude::*;
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 mod coin;
 mod player;
@@ -68,9 +66,9 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         }),
     ));
 
-    let ldtk_handle = asset_server.load_with_settings(
-        "collectathon.ldtk",
-        |s: &mut LdtkProjectLoaderSettings| {
+    let ldtk_handle = asset_server
+        .load_builder()
+        .with_settings(|s: &mut LdtkProjectLoaderSettings| {
             let config = MyConfigStruct { seed: SEED };
 
             s.data = serde_json::to_value(&config)
@@ -78,11 +76,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 .as_object()
                 .expect("Failed to convert value to object")
                 .clone();
-        },
-    );
+        })
+        .load("collectathon.ldtk");
 
     commands.spawn(LdtkWorldBundle {
-        ldtk_handle,
+        ldtk_handle: ldtk_handle.into(),
         ..Default::default()
     });
 }
